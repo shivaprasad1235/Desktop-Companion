@@ -193,7 +193,7 @@ class SpiderWindow(QWidget):
                 self.is_dragging = True
                 self.drag_offset_x = local_pos.x() - self.sx
                 self.drag_offset_y = local_pos.y() - self.sy
-                self.double_click_pos = local_pos
+                self.last_double_click_time = time.time()
                 self.setCursor(Qt.ClosedHandCursor)
                 event.accept()
 
@@ -201,6 +201,16 @@ class SpiderWindow(QWidget):
         if event.button() == Qt.LeftButton:
             local_pos = event.position()
             dist = math.hypot(local_pos.x() - self.sx, local_pos.y() - self.sy)
+            
+            # If already dragging (sticky mode), click drops it
+            if self.is_dragging:
+                self.is_dragging = False
+                self.grab_mode = False
+                self.setCursor(Qt.ArrowCursor)
+                event.accept()
+                return
+                
+            # If in Grab Mode, click-hold grabs it
             if self.grab_mode:
                 if dist < self.spider_w / 2 + 15:
                     self.is_dragging = True
@@ -215,20 +225,14 @@ class SpiderWindow(QWidget):
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton and self.is_dragging:
-            dc_pos = getattr(self, "double_click_pos", None)
-            if dc_pos is not None:
-                local_pos = event.position()
-                move_dist = math.hypot(local_pos.x() - dc_pos.x(), local_pos.y() - dc_pos.y())
-                self.double_click_pos = None  # clear it
-                if move_dist < 8.0:
-                    # User double-tapped and released without dragging.
-                    # Keep Grab Mode enabled, but unlock active drag until next click-hold.
-                    self.is_dragging = False
-                    self.setCursor(Qt.OpenHandCursor)
-                    event.accept()
-                    return
-            
-            # Normal drag release: drop and exit Grab Mode
+            # Pattern A release: drop only if not the immediate release of the double-click
+            double_click_dt = time.time() - getattr(self, "last_double_click_time", 0.0)
+            if double_click_dt < 0.25:
+                # Keep active dragging, let it follow mouse without holding (Pattern B sticky mode)
+                event.accept()
+                return
+                
+            # Normal release ending a long drag
             self.is_dragging = False
             self.grab_mode = False
             self.setCursor(Qt.ArrowCursor)
