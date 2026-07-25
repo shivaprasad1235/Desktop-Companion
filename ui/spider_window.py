@@ -15,8 +15,8 @@ class SpiderWindow(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         
         # Position window in the top-right corner
-        self.window_w = 320
-        self.window_h = 550
+        self.window_w = 460
+        self.window_h = 600
         self.resize(self.window_w, self.window_h)
         self.reposition_window()
         
@@ -33,12 +33,12 @@ class SpiderWindow(QWidget):
         self.spider_h = 64
         
         # Anchor point for web thread
-        self.anchor_x = 160.0
+        self.anchor_x = 230.0
         self.anchor_y = 0.0
         
         # Resting kinematics states
         self.rest_len = 160.0
-        self.sx = 160.0
+        self.sx = 230.0
         self.sy = self.rest_len
         self.vx = 0.0
         self.vy = 0.0
@@ -193,6 +193,7 @@ class SpiderWindow(QWidget):
                 self.is_dragging = True
                 self.drag_offset_x = local_pos.x() - self.sx
                 self.drag_offset_y = local_pos.y() - self.sy
+                self.last_double_click_time = time.time()
                 self.setCursor(Qt.ClosedHandCursor)
                 event.accept()
 
@@ -213,6 +214,12 @@ class SpiderWindow(QWidget):
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton and self.is_dragging:
+            # Ignore release if it happens within 250ms of double-click
+            double_click_dt = time.time() - getattr(self, "last_double_click_time", 0.0)
+            if double_click_dt < 0.25:
+                event.accept()
+                return
+                
             self.is_dragging = False
             self.grab_mode = False
             self.setCursor(Qt.ArrowCursor)
