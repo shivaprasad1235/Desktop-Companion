@@ -1,0 +1,10 @@
+{
+  "name": "Cat Buddy",
+  "scale": 1.0,
+  "speed": 1.2,
+  "greeting": "Hello Shiva! \ud83d\udc3e Meow!",
+  "cursorFear": 160,
+  "jumpHeight": 140,
+  "idleChance": 0.15,
+  "voice": true
+}

@@ -1,0 +1,13 @@
+{
+  "character_pack": "robobuddy",
+  "size": 64,
+  "movement_speed": 1.0,
+  "greeting_enabled": true,
+  "auto_start": false,
+  "animation_fps": 12,
+  "opacity": 1.0,
+  "click_through": false,
+  "always_on_top": true,
+  "language": "English",
+  "mute": false
+}

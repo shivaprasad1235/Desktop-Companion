@@ -1,0 +1,10 @@
+{
+  "name": "Robo Buddy",
+  "scale": 1.0,
+  "speed": 1.25,
+  "greeting": "Systems Online! \ud83e\udd16 Hello Shiva, ready to code? \u26a1",
+  "cursorFear": 160,
+  "jumpHeight": 130,
+  "idleChance": 0.2,
+  "voice": true
+}
