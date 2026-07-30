@@ -4,7 +4,7 @@ import time
 import random
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Qt, QTimer, QPoint, QRect
-from PySide6.QtGui import QPainter, QColor, QPixmap, QPen, QBrush, QCursor, QTransform, QGuiApplication, QRegion, QPainterPath, QFont
+from PySide6.QtGui import QPainter, QColor, QPixmap, QPen, QBrush, QCursor, QTransform, QGuiApplication, QRegion, QPainterPath
 
 class SpiderWindow(QWidget):
     def __init__(self, parent=None):
@@ -29,8 +29,8 @@ class SpiderWindow(QWidget):
             painter.drawEllipse(16, 16, 32, 32)
             painter.end()
             
-        self.spider_w = 72
-        self.spider_h = 72
+        self.spider_w = 64
+        self.spider_h = 64
         
         # Anchor point for web thread
         self.anchor_x = 230.0
@@ -174,15 +174,14 @@ class SpiderWindow(QWidget):
             self.spider_h + margin * 2
         )
         
-        # Bounding box for the handwritten quote text to ensure it remains visible
-        text_rect = QRect(
-            int(250 + (self.sx - 230.0) * 0.4 - 10),
-            int(80 + (self.sy - 160.0) * 0.2 - 10),
-            220,
-            110
-        )
+        # Thread bounding area
+        min_x = int(min(self.anchor_x, self.sx) - 6)
+        max_x = int(max(self.anchor_x, self.sx) + 6)
+        min_y = int(min(self.anchor_y, self.sy))
+        max_y = int(max(self.anchor_y, self.sy))
+        thread_rect = QRect(min_x, min_y, max(1, max_x - min_x), max(1, max_y - min_y))
         
-        region = QRegion(sp_rect).united(QRegion(thread_rect)).united(QRegion(text_rect))
+        region = QRegion(sp_rect).united(QRegion(thread_rect))
         self.setMask(region)
 
     def mouseDoubleClickEvent(self, event):
@@ -284,63 +283,11 @@ class SpiderWindow(QWidget):
             
             path.lineTo(px + curve_offset_x + perp_dx * vibration, py + curve_offset_y + perp_dy * vibration)
             
-        # Draw double-strand scribbly ink web thread (matches hand-drawn sketch style)
-        # Main thick dark-ink strand
-        pen_main = QPen(QColor(25, 25, 25, 220))
-        pen_main.setWidthF(stretched_thickness * 1.5)
-        painter.setPen(pen_main)
+        # Draw silk thread line
+        pen = QPen(QColor(220, 220, 220, 185))
+        pen.setWidthF(stretched_thickness)
+        painter.setPen(pen)
         painter.drawPath(path)
-        
-        # Second wrapping strand
-        path_wrap = QPainterPath()
-        path_wrap.moveTo(self.anchor_x, self.anchor_y)
-        for i in range(1, N + 1):
-            t = i / N
-            px = self.anchor_x + dx * t
-            py = self.anchor_y + dy * t
-            
-            sag = 4.0 * t * (1.0 - t)
-            curve_offset_x = -self.vx * 0.04 * sag
-            curve_offset_y = 6.0 * sag
-            
-            # Sinusoidal wrap offset
-            wrap_offset = math.sin(t * 24.0) * 1.8 * (1.0 if self.is_dragging else 0.6)
-            vibration = math.sin(t * math.pi * 3.0) * osc_amp * sag
-            
-            path_wrap.lineTo(px + curve_offset_x + perp_dx * (vibration + wrap_offset), 
-                              py + curve_offset_y + perp_dy * (vibration + wrap_offset))
-                              
-        pen_wrap = QPen(QColor(40, 40, 40, 180))
-        pen_wrap.setWidthF(stretched_thickness * 0.8)
-        painter.setPen(pen_wrap)
-        painter.drawPath(path_wrap)
-        
-        # Draw connection splatters at the anchor and waist
-        painter.setBrush(QBrush(QColor(25, 25, 25, 220)))
-        painter.setPen(Qt.NoPen)
-        # Top anchor splatter
-        painter.drawEllipse(QPoint(int(self.anchor_x), int(self.anchor_y)), 4, 3)
-        # Waist splatter (attaches to back arch)
-        painter.drawEllipse(QPoint(int(self.sx), int(self.sy - 8)), 5, 4)
-        
-        # Draw the hand-drawn sketch quote on the right
-        painter.setFont(QFont("Segoe Print", 9, QFont.Bold))
-        painter.setPen(QColor(40, 40, 40, 190))
-        
-        text_lines = [
-            "There will be dark days ahead",
-            "and there'll be days when you feel all alone,",
-            "and that's when hope is needed most.",
-            "Keep it alive.",
-            "                       - Gwen Stacy"
-        ]
-        
-        # Follow the sway dynamics slightly
-        tx_base = 250 + (self.sx - 230.0) * 0.4
-        ty_base = 80 + (self.sy - 160.0) * 0.2
-        
-        for idx, line in enumerate(text_lines):
-            painter.drawText(int(tx_base), int(ty_base + idx * 18), line)
         
         # Calculate Squash and Stretch ratios (body deformation under tension)
         scale_x = 1.0
