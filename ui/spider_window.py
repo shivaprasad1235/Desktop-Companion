@@ -29,8 +29,8 @@ class SpiderWindow(QWidget):
             painter.drawEllipse(16, 16, 32, 32)
             painter.end()
             
-        self.spider_w = 64
-        self.spider_h = 64
+        self.spider_w = 72
+        self.spider_h = 72
         
         # Anchor point for web thread
         self.anchor_x = 230.0
